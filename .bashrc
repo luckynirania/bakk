@@ -113,9 +113,9 @@ fi
 #export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
 
 # some more ls aliases
-alias ll='ls -alF'
+alias ll='ls -l'
 alias la='ls -A'
-alias l='ls -CF'
+alias l='ls -alF'
 
 # Add an "alert" alias for long running commands.  Use like so:
 #   sleep 10; alert
@@ -164,4 +164,6 @@ _tutor_completionetup() {
     complete $COMPLETION_OPTIONS -F _tutor_completion tutor
 }
 
-_tutor_completionetup;
+# export PATH=$PATH:/usr/local/go/bin
+
+# export DISPLAY=$(cat /etc/resolv.conf | grep nameserver | awk '{print $2; exit;}'):0.0
