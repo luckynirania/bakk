@@ -1,0 +1,9 @@
+alias py=python3
+alias e=exit
+alias c=clear
+
+alias test-all='redis-cli flushall && php artisan optimize:clear && php artisan test --parallel --testsuite Unit,Feature,Modules --exclude-group slow'
+alias test-p="redis-cli flushall && php artisan optimize:clear && php artisan test --parallel $1"
+alias test="redis-cli flushall && php artisan optimize:clear && php artisan test $1"
+alias cipsr='composer install && php artisan migrate && php artisan cache:clear && php artisan optimize:clear'
+alias format='composer rector && composer pint'

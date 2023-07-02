@@ -54,13 +54,32 @@ function set_virtualenv () {
   fi
 }
 
+function roundseconds (){
+  # rounds a number to 3 decimal places
+  echo m=$1";h=0.5;scale=4;t=1000;if(m<0) h=-0.5;a=m*t+h;scale=3;a/t;" | bc
+}
+
+function bash_getstarttime (){
+  # places the epoch time in ns into shared memory
+  date +%s.%N >"/dev/shm/${USER}.bashtime.${1}"
+}
+
+function bash_getstoptime (){
+  # reads stored epoch time and subtracts from current
+  local endtime=$(date +%s.%N)
+  local starttime=$(cat /dev/shm/${USER}.bashtime.${1})
+  roundseconds $(echo $(eval echo "$endtime - $starttime") | bc)
+}
+
+PS0='$(bash_getstarttime $ROOTPID)'
+
 function set_bash_prompt () {
     set_virtualenv
-    A="-----------------\n${debian_chroot:+($debian_chroot)}\[\033[01;35m\]\[\033[0;35m\]\342\224\214\342\224\200\$([[ \$? != 0 ]] && echo \"[\[\033[0;35m\]\342\234\227\[\033[0;37m\]]\342\224\200\")[$(if [[ ${EUID} == 0 ]]; then echo '\[\033[01;35m\]root\[\033[01;33m\]@\[\033[01;96m\]\h'; else echo '\[\033[0;39m\]\u\[\033[01;33m\]@\[\033[01;96m\]\h'; fi)\[\033[0;35m\]]\342\224\200[\[\033[01;32m\]\w\[\033[0;35m\]]"
+    A="\[\033[36m\]\n--------------------------\nExecution time $(bash_getstoptime $ROOTPID)s \n--------------------------\n$PYTHON_VIRTUALENV\n${debian_chroot:+($debian_chroot)}\[\033[01;35m\]\[\033[0;35m\]\342\224\214\342\224\200\$([[ \$? != 0 ]] && echo \"[\[\033[0;35m\]\342\234\227\[\033[0;37m\]]\342\224\200\")[$(if [[ ${EUID} == 0 ]]; then echo '\[\033[01;35m\]root\[\033[01;33m\]@\[\033[01;96m\]\h'; else echo '\[\033[0;39m\]\u\[\033[01;33m\]@\[\033[01;96m\]\h'; fi)\[\033[0;35m\]]\342\224\200[\[\033[01;32m\]\w\[\033[0;35m\]]"
     # set_virtualenv
     # A=$PYTHON_VIRTUALENV$A
     B="\n\[\033[0;35m\]\342\224\224\342\224\200\342\224\200\342\225\274 \[\033[0m\]\[\e[01;33m\]\\$\[\e[0m\] "
-    PS1="$PYTHON_VIRTUALENV$A $(__posh_git_echo)$B"
+    PS1="$A $(__posh_git_echo)$B"
 }
 
 if [ -n "$force_color_prompt" ]; then
@@ -144,26 +163,13 @@ fi
 if [ -x /usr/bin/mint-fortune ]; then
      /usr/bin/mint-fortune
 fi
-_tutor_completion() {
-    local IFS=$'
-'
-    COMPREPLY=( $( env COMP_WORDS="${COMP_WORDS[*]}" \
-                   COMP_CWORD=$COMP_CWORD \
-                   _TUTOR_COMPLETE=complete $1 ) )
-    return 0
-}
 
-_tutor_completionetup() {
-    local COMPLETION_OPTIONS=""
-    local BASH_VERSION_ARR=(${BASH_VERSION//./ })
-    # Only BASH version 4.4 and later have the nosort option.
-    if [ ${BASH_VERSION_ARR[0]} -gt 4 ] || ([ ${BASH_VERSION_ARR[0]} -eq 4 ] && [ ${BASH_VERSION_ARR[1]} -ge 4 ]); then
-        COMPLETION_OPTIONS="-o nosort"
-    fi
-
-    complete $COMPLETION_OPTIONS -F _tutor_completion tutor
-}
+ export NVM_DIR="$HOME/.nvm"
+  [ -s "/home/linuxbrew/.linuxbrew/opt/nvm/nvm.sh" ] && \. "/home/linuxbrew/.linuxbrew/opt/nvm/nvm.sh"  # This loads nvm
+  [ -s "/home/linuxbrew/.linuxbrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/home/linuxbrew/.linuxbrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
 
 # export PATH=$PATH:/usr/local/go/bin
 
 # export DISPLAY=$(cat /etc/resolv.conf | grep nameserver | awk '{print $2; exit;}'):0.0
+
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
